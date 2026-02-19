@@ -1,23 +1,41 @@
-import {FunctionTool, LlmAgent} from '@google/adk';
-import {z} from 'zod';
 
-/* Mock tool implementation */
-const getCurrentTime = new FunctionTool({
-  name: 'get_current_time',
-  description: 'Returns the current time in a specified city.',
-  parameters: z.object({
-    city: z.string().describe("The name of the city for which to retrieve the current time."),
-  }),
-  execute: ({city}) => {
-    return {status: 'success', report: `The current time in ${city} is 10:30 AM`};
-  },
+import { LlmAgent, GoogleSearchTool, AgentTool } from '@google/adk';
+
+// Google Search Agent
+const myAgentGoogleSearchAgent = new LlmAgent({
+  name: "My_Agent_google_search_agent",
+  model: "gemini-2.5-flash",
+  description: "Agent specialized in performing Google searches.",
+  instruction: "Use the GoogleSearchTool to find information on the web.",
+  subAgents: [],
+  tools: [
+    new GoogleSearchTool()
+  ]
 });
 
-export const rootAgent = new LlmAgent({
-  name: 'hello_time_agent',
-  model: 'gemini-2.5-flash',
-  description: 'Tells the current time in a specified city.',
-  instruction: `You are a helpful assistant that tells the current time in a city.
-                Use the 'getCurrentTime' tool for this purpose.`,
-  tools: [getCurrentTime],
+// URL Context Agent
+// NOTE: UrlContextTool is not available in '@google/adk'. Please implement or import the correct tool if needed.
+// const myAgentUrlContextAgent = new LlmAgent({
+//   name: "My_Agent_url_context_agent",
+//   model: "gemini-2.5-flash",
+//   description: "Agent specialized in fetching content from URLs.",
+//   instruction: "Use the UrlContextTool to retrieve content from provided URLs.",
+//   subAgents: [],
+//   tools: [
+//     new UrlContextTool()
+//   ]
+// });
+
+// Root Agent
+const rootAgent = new LlmAgent({
+  name: "My_Agent",
+  model: "gemini-2.5-flash",
+  description: "Agent to help interact with my data.",
+  instruction: "",
+  subAgents: [],
+  tools: [
+    new AgentTool({ agent: myAgentGoogleSearchAgent })
+  ]
 });
+
+export default rootAgent;
